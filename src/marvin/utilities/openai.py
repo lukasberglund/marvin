@@ -68,6 +68,7 @@ def get_openai_client(
         azure_endpoint = getattr(marvin.settings, "azure_openai_endpoint", None)
 
         if any(k is None for k in [api_key, api_version, azure_endpoint]):
+            import pdb; pdb.set_trace()
             raise ValueError(
                 inspect.cleandoc(
                     """
@@ -100,6 +101,7 @@ def get_openai_client(
         cls=client_class,
         loop=loop,
         kwargs_items=tuple(kwargs.items()),
+        api_key=api_key
     )
 
 
@@ -108,6 +110,7 @@ def _get_client_memoized(
     cls: type,
     loop: Optional[asyncio.AbstractEventLoop] = None,
     kwargs_items: tuple[tuple[str, Any]] = None,
+    api_key: str = None
 ) -> Union[Client, AsyncClient]:
     """
     This function is memoized to ensure that only one instance of the client is
@@ -123,4 +126,6 @@ def _get_client_memoized(
     kwargs_items is a tuple of dict items to get around the fact that
     memoization requires hashable arguments.
     """
-    return cls(**dict(kwargs_items))
+    assert api_key is not None
+
+    return cls(**dict(kwargs_items), default_headers={"Ocp-Apim-Subscription-Key": api_key})
